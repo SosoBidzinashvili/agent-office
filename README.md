@@ -36,6 +36,31 @@ index.html?task=<your task>&route=feature|backend|deploy&run=1
 or `index.html#demo` for a quick auto-run. This is how a task given in chat can open the
 live office and have the agents start working right away.
 
+### 🔴 Live mode — Claude drives the office in real time
+
+The office can mirror **real** work as it happens. Claude appends events to
+`live/status.json`; the office polls it (every 0.9s) and animates the agents through the
+real pipeline — the chat input is disabled and the header shows `🔴 LIVE`.
+
+```bash
+# 1. serve the folder (fetch() needs http, not file://)
+python3 -m http.server 8777 --directory .
+# 2. open the office in live mode
+open "http://127.0.0.1:8777/?live=1"
+# 3. drive it as the work happens (Claude does this per pipeline stage):
+python3 live/emit.py reset
+python3 live/emit.py user  "add a filter to the market page"
+python3 live/emit.py orc   "direction: 🆕 Feature — assigning the team"
+python3 live/emit.py start nino  "📝 spec"   "user stories + API + ACs"
+python3 live/emit.py gate  "SPEC APPROVED ✅"
+python3 live/emit.py start vakho "⚙️ Backend" "route + model + tests"
+python3 live/emit.py gate  "code-review PASS ✅"      # add "fail" as 3rd arg for a red gate
+python3 live/emit.py done  "🎉 SHIPPED — commit a1b2c3d"
+```
+
+Event types: `reset · user · orc · start <agent> <label> <text> · gate <text> [fail] · done <text>`.
+Agent ids: `nino giorgi tamar lela vakho zaza dato mariam beka irakli maestro`.
+
 ### The rooms
 
 `📋 Spec` · `🎨 Design` · `⚙️ Dev` · `☕ Break Room` · `🔍 Review` · `🧪 QA` · `🕵️ Audit` · `🚻 WC` · `🛎️ Reception`

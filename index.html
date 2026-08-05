@@ -675,6 +675,45 @@ if(qTask) taskInput.value=qTask;
 if(location.hash==='#demo' || params.get('run')==='1'){
   setTimeout(()=>run(qTask||'ახალი ჩატ ფიჩერი', routes[qRoute]?qRoute:null), 700);
 }
+
+// ===== LIVE MODE: driven by Claude via live/status.json =====
+// open with ?live=1 (served over a local http server). Claude appends events to
+// live/status.json as it does the real work; the office mirrors it in real time.
+if(params.get('live')==='1'){
+  const stEl=document.querySelector('.chat-head .st');
+  if(stEl) stEl.innerHTML='🔴 <b>LIVE</b> — Claude-ის მართვით';
+  taskInput.placeholder='🔴 live — დავალებას Claude ამუშავებს ჩატში…';
+  taskInput.disabled=true; sendBtn.disabled=true;
+  document.getElementById('tkTxt').textContent='LIVE';
+  let liveSeq=-1, cursor=0, queue=[], proc=false, liveActive=null;
+  async function poll(){
+    try{
+      const r=await fetch('live/status.json?t='+Date.now(),{cache:'no-store'}); if(!r.ok)return;
+      const s=await r.json(); if(s.seq===liveSeq)return; liveSeq=s.seq;
+      const evs=s.events||[]; for(const e of evs.slice(cursor)) queue.push(e); cursor=evs.length; pump();
+    }catch(e){}
+  }
+  async function pump(){ if(proc)return; proc=true; while(queue.length){ await handle(queue.shift()); } proc=false; }
+  async function handle(e){
+    if(e.type==='reset'){ liveActive=null; ticketHolder=null; ticketEl.style.opacity='0';
+      const m=document.getElementById('msgs'); if(m) m.innerHTML=''; return; }
+    if(e.type==='user'){ chatUser(e.text); return; }
+    if(e.type==='orc'){ chatOrc(e.text); return; }
+    if(e.type==='start'){ const a=byId[e.agent]; if(!a)return;
+      if(liveActive&&liveActive!==a){ liveActive.act='idle';liveActive.emote=null;liveActive.busy=false; }
+      recruit(a); status(`${a.name}: ${e.label||''}`);
+      await moveTo(a,ticketTile.c,ticketTile.r); ticketHolder=a; ticketEl.style.opacity='1';
+      await moveTo(a,a.seat.c,a.seat.r);
+      a.face='up'; a.act='work'; a.emote=e.label||'⚙️'; ticketTile={c:a.seat.c,r:a.seat.r};
+      liveActive=a; chatAgent(a, e.text||e.label||'…'); return; }
+    if(e.type==='gate'){ if(liveActive){ liveActive.act='idle'; await doStamp(liveActive,e.text,e.kind!=='fail'); liveActive.act='work'; }
+      chatGate('🚦 '+e.text, e.kind==='fail'?'fail':(/🎉|✅|GO|PASS|SHIP|LIVE/i.test(e.text)?'win':'')); return; }
+    if(e.type==='done'){ if(liveActive){ liveActive.act='idle';liveActive.emote=null;liveActive.busy=false;liveActive=null; }
+      ticketHolder=null; ticketEl.style.opacity='0';
+      if(e.text) chatOrc(e.text); chatGate('🎉 დასრულდა','win'); confetti(); return; }
+  }
+  setInterval(poll,900); poll();
+}
 </script>
 </body>
 </html>
