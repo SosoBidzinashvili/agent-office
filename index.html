@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chveni Sopeli · Garage — cozy agent office</title>
+<style>
+  :root{
+    --wood:#6b4326; --wood2:#4a2c18; --cream:#f2e6cc; --teal:#3f8f88; --amber:#e0a24a;
+    --panel:#2a2018; --line:#7a5a38;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:"Trebuchet MS","Segoe UI",system-ui,"Noto Sans Georgian",sans-serif;
+    background:radial-gradient(1100px 560px at 50% -8%, #3b2c1e 0%, #241a12 55%, #17110c 100%);
+    color:var(--cream);min-height:100vh;padding:18px 14px 40px}
+  .wrap{max-width:1120px;margin:0 auto}
+  .topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#4f9a92,#2f6f68);
+    display:grid;place-items:center;font-size:24px;box-shadow:0 6px 18px #0007,inset 0 2px 0 #ffffff22}
+  h1{font-size:clamp(17px,2.5vw,24px);margin:0;color:#f6ecd4;text-shadow:0 2px 0 #0006}
+  .tagline{font-size:12px;color:#c9b48c;margin-top:1px}.tagline b{color:var(--amber)}
+  .controls{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+    background:#2a2018cc;border:1px solid var(--line);border-radius:14px;padding:9px;box-shadow:0 6px 18px #0006}
+  .controls input{border:1px solid var(--line);background:#1c140d;color:var(--cream);
+    padding:9px 12px;border-radius:9px;font-family:inherit;font-size:13px;min-width:190px;flex:1 1 180px}
+  .controls input:focus{outline:2px solid var(--amber)}
+  button{font-family:inherit;font-weight:700;cursor:pointer;border:none;border-radius:9px;
+    padding:9px 13px;font-size:13px;color:#241a12;background:var(--amber);transition:.15s}
+  button:hover{transform:translateY(-1px);filter:brightness(1.06)}
+  button.go{background:linear-gradient(135deg,#5cc0b6,#2f8f85);color:#08201e;box-shadow:0 4px 12px #2f8f8555}
+  button.chip{background:#3a2c1e;color:#e8d3a0;border:1px solid var(--line)}
+  button.chip:hover{background:var(--teal);color:#fff}
+  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+  .frame{position:relative;width:100%;max-width:1080px;margin:0 auto;border:6px solid #3a2c1e;border-radius:16px;
+    overflow:hidden;box-shadow:0 24px 60px #000a,inset 0 0 0 2px #6b4a2e;background:#17110c}
+  .view{position:relative;width:100%;aspect-ratio:512/320;overflow:hidden}
+  canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;display:block}
+  .overlay{position:absolute;inset:0;pointer-events:none}
+  .rlabel{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-size:10px;font-weight:800;
+    color:#fff6df;background:#2a2018d0;border:1px solid #7a5a38;padding:1px 8px;border-radius:7px;
+    letter-spacing:.3px;box-shadow:0 2px 5px #0006}
+  .tag{position:absolute;transform:translate(-50%,-100%);white-space:nowrap;font-size:9px;font-weight:800;
+    color:#fff;background:#241a12cc;padding:0 5px;border-radius:6px;line-height:14px;box-shadow:0 1px 3px #0007;z-index:5}
+  .bub{position:absolute;transform:translate(-50%,-100%) scale(.5);opacity:0;transition:.14s;z-index:20;
+    background:#fff8e8;color:#241a12;font-size:13px;font-weight:800;padding:3px 9px;border-radius:11px;
+    white-space:nowrap;box-shadow:0 4px 12px #0008;border:1.5px solid #d8c298}
+  .bub.show{opacity:1;transform:translate(-50%,-100%) scale(1)}
+  .bub::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#fff8e8}
+  .bub.think{background:#eef4ff;border-color:#c3d3ee;border-radius:14px}
+  .bub.think::after{border:none;width:6px;height:6px;background:#eef4ff;border:1.5px solid #c3d3ee;border-radius:50%;
+    left:40%;top:calc(100% + 1px);box-shadow:-5px 4px 0 -1px #eef4ff, -4px 4px 0 0 #c3d3ee}
+  .ticket{position:absolute;transform:translate(-50%,-100%);background:#fff;border-left:3px solid var(--teal);
+    padding:2px 6px;border-radius:4px;font-size:9px;font-weight:800;color:#241a12;box-shadow:0 4px 10px #0008;
+    max-width:120px;opacity:0;transition:opacity .3s;z-index:15}
+  .stamp{position:absolute;transform:translate(-50%,-50%) rotate(-11deg) scale(.4);opacity:0;transition:.2s;z-index:25;
+    font-weight:900;font-size:14px;padding:4px 10px;border-radius:8px;border:3px solid;background:#fff6df;color:#241a12}
+  .stamp.show{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}
+  .stamp.ok{border-color:var(--teal);color:#1f6f68}.stamp.bad{border-color:#c0503f;color:#a83a2c}
+
+  .statusbar{text-align:center;margin:12px auto 0;font-size:13px;font-weight:700;color:var(--amber);min-height:20px}
+  .cols{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}
+  @media(min-width:820px){.cols{grid-template-columns:1fr 300px}}
+  .card{background:#2a2018cc;border:1px solid var(--line);border-radius:14px;padding:13px;box-shadow:0 6px 18px #0006}
+  .log{height:200px;overflow-y:auto;font-size:12px;line-height:1.6}
+  .log .li{padding:2px 0;border-bottom:1px solid #ffffff0d}
+  .log .li .t{color:#a98c63;font-size:10px;margin-right:6px}
+  .log .li.gate{color:#f0c47a;font-weight:800}.log .li.fail{color:#e08a6a;font-weight:700}.log .li.win{color:#8fd07a;font-weight:800}
+  .legend h3{margin:0 0 8px;font-size:14px;color:#f0dbaa}
+  .legend .r{display:flex;align-items:center;gap:8px;padding:2px 0;font-size:11.5px;color:#d9c39a}
+  .legend .r b{color:#f6ecd4}.legend .dot{width:11px;height:11px;border-radius:3px;box-shadow:0 1px 2px #0007;flex:0 0 auto}
+  .rooms{font-size:11px;color:#b89a70;margin-top:8px;line-height:1.5}
+  .confetti{position:fixed;top:-20px;font-size:20px;z-index:99;pointer-events:none;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(108vh) rotate(520deg);opacity:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="logo">🏢</div>
+    <div>
+      <h1>Chveni Sopeli · <span style="color:var(--amber)">Garage</span></h1>
+      <div class="tagline">cozy ოფისი — <b>მალე კომპანია</b>. მიეცი თასქი, აგენტები ოთახებში დადიან და საქმეს აბარებენ 🚶</div>
+    </div>
+    <div class="controls">
+      <input id="taskInput" type="text" placeholder="თასქი…  მაგ: 'ბაზრის ჩატ ფიჩერი'">
+      <button class="go" id="runBtn">▶ მიეცი თასქი</button>
+      <button class="chip" data-preset="feature">🆕 ფიჩერი</button>
+      <button class="chip" data-preset="backend">🔧 Backend</button>
+      <button class="chip" data-preset="deploy">🚀 Deploy</button>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="view">
+      <canvas id="scene" width="512" height="320"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+  </div>
+  <div class="statusbar" id="statusbar">☕ აგენტები ისვენებენ… მიეცი თასქი.</div>
+
+  <div class="cols">
+    <div class="card log" id="log"></div>
+    <div class="card legend" id="legend"><h3>🎭 გუნდი</h3></div>
+  </div>
+</div>
+
+<script>
+// ===== consts =====
+const TS=16, COLS=32, ROWS=20, W=COLS*TS, H=ROWS*TS;
+const cv=document.getElementById('scene'), ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
+const overlay=document.getElementById('overlay');
+
+// ===== palette (office) =====
+const P={
+  wallExt:'#cdb185', wallExtHi:'#e0c79b', wallInt:'#e2d3b0', rail:'#8a5a34', base:'rgba(60,38,20,.22)',
+  brick:['#9a5a44','#8a4e3a','#a5644c'], mortar:'#5a3527',
+  woodF:'#6b4a2e', glass:'rgba(150,205,210,.42)', glassHi:'rgba(255,255,255,.4)',
+  parquet:['#b8834f','#a9743f','#c08a58','#ab7748'], parquetSeam:'#6f4a26', parquetGrain:'rgba(80,48,22,.28)',
+  bathTile:['#e2e7df','#cad1c6'], bathSeam:'rgba(0,0,0,.09)', seam:'#8a6236',
+  wood:'#7c4a2a', woodD:'#5a3420', woodL:'#9c6636',
+  glassW1:'#8fcabf', glassW2:'#5fa79b', sill:'#8a5a34', frame:'#6b4a2e',
+  leaf:['#5fa24a','#478a3c','#6fb457'], pot:'#b5674a', potD:'#8a4a34',
+  book:['#a94a52','#4f8a4a','#c9903a','#5a7fa0','#8a5a9a','#c56b4a','#3f8f88'],
+  rug:['#a94a52','#c56b74','#3f8f88','#d99a4a'], metal:'#8a929a', metalD:'#5a626a',
+  shadow:'rgba(0,0,0,.22)'
+};
+
+// ===== agents =====
+const AGENTS=[
+  {id:'nino',  name:'ნინო',  role:'BA · speც',   model:'sonnet', shirt:'#3f8f88',hair:'#7a3f28',skin:'#eabf95', c:3, r:7, room:0},
+  {id:'giorgi',name:'გიორგი',role:'არქიტექტორი', model:'sonnet', shirt:'#5a7fa0',hair:'#2a2420',skin:'#d8a877', c:6, r:7, room:0},
+  {id:'tamar', name:'თამარ', role:'დიზაინერი',   model:'sonnet', shirt:'#c56b4a',hair:'#a5432a',skin:'#eabf95', c:11,r:7, room:1},
+  {id:'lela',  name:'ლელა',  role:'Frontend',    model:'sonnet', shirt:'#8a5a9a',hair:'#3a2a22',skin:'#eabf95', c:14,r:7, room:1},
+  {id:'vakho', name:'ვახო',  role:'Backend',     model:'sonnet', shirt:'#6f9a54',hair:'#2a2420',skin:'#d8a877', c:19,r:7, room:2},
+  {id:'zaza',  name:'ზაზა',  role:'DevOps',      model:'haiku',  shirt:'#d99a34',hair:'#2a2420',skin:'#cf9866', c:22,r:7, room:2},
+  {id:'dato',  name:'დათო',  role:'Code Review', model:'sonnet', shirt:'#5c6f7d',hair:'#4a4038',skin:'#d8a877', c:5, r:17,room:4},
+  {id:'mariam',name:'მარიამ',role:'QA',          model:'haiku',  shirt:'#cf6f93',hair:'#5a3320',skin:'#eabf95', c:11,r:17,room:5},
+  {id:'beka',  name:'ბექა',  role:'Verifier',    model:'sonnet', shirt:'#4e8d5b',hair:'#2a2420',skin:'#d8a877', c:14,r:17,room:5},
+  {id:'irakli',name:'ირაკლი',role:'Auditor 👑',  model:'sonnet', shirt:'#3a4a5e',hair:'#6b6b6b',skin:'#cf9866', c:20,r:17,room:6},
+  {id:'maestro',name:'მაესტრო',role:'ორკესტრატ.',model:'—',      shirt:'#e07e2e',hair:'#2a2420',skin:'#d8a877', c:2, r:11,room:8},
+];
+const byId={}; AGENTS.forEach(a=>byId[a.id]=a);
+
+// ===== rooms (labels) =====
+const ROOMS=[
+  {t:'📋 Spec',c:4,r:2.4}, {t:'🎨 Design',c:12,r:2.4}, {t:'⚙️ Dev',c:20,r:2.4}, {t:'☕ Break Room',c:27.5,r:2.4},
+  {t:'🔍 Review',c:4,r:13.4}, {t:'🧪 QA',c:12,r:13.4}, {t:'🕵️ Audit',c:20,r:13.4}, {t:'🚻 WC',c:27.5,r:13.4},
+  {t:'🛎️ Reception',c:4,r:10.4},
+];
+
+// ===== grid: 0 floor,1 wall,2 block =====
+const grid=[];
+for(let r=0;r<ROWS;r++){grid.push([]);for(let c=0;c<COLS;c++){
+  let w=0;
+  if(r<=1||r===ROWS-1||c===0||c===COLS-1) w=1;
+  if(r===9||r===12) w=1;
+  if((c===8||c===16||c===24) && ((r>=2&&r<=9)||(r>=12&&r<=18))) w=1;
+  grid[r][c]=w;
+}}
+[[9,4],[9,12],[9,20],[9,28],[12,4],[12,12],[12,20],[12,28]].forEach(([r,c])=>grid[r][c]=0);
+AGENTS.forEach(a=>{ if(a.id!=='maestro') grid[a.r-1][a.c]=2; });
+grid[11][1]=2;                 // reception desk
+grid[10][15]=2; grid[10][16]=2;// meeting table
+// break room furniture blocks
+grid[3][26]=2; grid[3][27]=2; grid[3][28]=2;  // sofa
+grid[6][27]=2;                                 // coffee table
+// wc furniture
+grid[14][27]=2;                                // toilet
+grid[14][29]=2;                                // sink
+const open=(c,r)=>r>=0&&r<ROWS&&c>=0&&c<COLS&&grid[r][c]===0;
+
+// ===== static scene =====
+const scene=document.createElement('canvas'); scene.width=W; scene.height=H;
+const sx=scene.getContext('2d'); sx.imageSmoothingEnabled=false;
+const Rr=(g,x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x|0,y|0,Math.max(1,w|0),Math.max(1,h|0));};
+const ell=(g,cx,cy,rx,ry,c)=>{g.fillStyle=c;g.beginPath();g.ellipse(cx,cy,rx,ry,0,0,7);g.fill();};
+function shade(hex,d){let n=parseInt(hex.slice(1),16),r=(n>>16)+d,g=((n>>8)&255)+d,b=(n&255)+d;
+  r=Math.max(0,Math.min(255,r));g=Math.max(0,Math.min(255,g));b=Math.max(0,Math.min(255,b));
+  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);}
+const sd=i=>((Math.sin(i*127.1)*43758.5)%1+1)%1;
+
+const isWC=(c,r)=>c>=25&&r>=13&&r<=18;
+function floorTile(c,r){
+  const x=c*TS,y=r*TS;
+  if(isWC(c,r)){ // small bathroom tiles
+    for(let i=0;i<2;i++)for(let j=0;j<2;j++) Rr(sx,x+i*8,y+j*8,8,8,((i+j+c+r)%2)?P.bathTile[0]:P.bathTile[1]);
+    Rr(sx,x,y,TS,1,P.bathSeam); Rr(sx,x,y+8,TS,1,P.bathSeam); Rr(sx,x,y,1,TS,P.bathSeam); Rr(sx,x+8,y,1,TS,P.bathSeam);
+    return;
+  }
+  // wood parquet — alternating block orientation (basket-weave)
+  const woods=P.parquet, base=woods[((c*3+r*5)%woods.length+woods.length)%woods.length];
+  const horiz=((c+r)%2)===0;
+  if(horiz){ for(let i=0;i<4;i++){ const py=y+i*4;
+    Rr(sx,x,py,TS,4,shade(base,i%2?7:-4)); Rr(sx,x,py+3,TS,1,P.parquetSeam);
+    Rr(sx,x+(i%2?3:9),py+1,5,1,P.parquetGrain); } }
+  else { for(let i=0;i<4;i++){ const px=x+i*4;
+    Rr(sx,px,y,4,TS,shade(base,i%2?7:-4)); Rr(sx,px+3,y,1,TS,P.parquetSeam);
+    Rr(sx,px+1,y+(i%2?3:9),1,5,P.parquetGrain); } }
+  Rr(sx,x,y,TS,1,'rgba(55,34,16,.20)'); Rr(sx,x,y,1,TS,'rgba(55,34,16,.20)'); // parquet block border
+}
+function drawScene(){
+  // floor
+  for(let r=2;r<ROWS-1;r++)for(let c=1;c<COLS-1;c++){
+    if(grid[r][c]===1)continue;
+    floorTile(c,r);
+  }
+  // walls
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    if(grid[r][c]!==1)continue;
+    const ext=(r<=1||r===ROWS-1||c===0||c===COLS-1);
+    const brickAccent = (r<=1 && c>=25 && c<=30); // break room exposed brick
+    if(brickAccent){
+      const b=P.brick[(c+r)%3]; Rr(sx,c*TS,r*TS,TS,TS,b);
+      Rr(sx,c*TS,r*TS+7,TS,1,P.mortar); Rr(sx,c*TS,r*TS+15,TS,1,P.mortar);
+      const off=(r%2)*8; Rr(sx,c*TS+off,r*TS,1,8,P.mortar); Rr(sx,c*TS+((off+8)%16),r*TS+8,1,8,P.mortar);
+    } else if(ext){
+      Rr(sx,c*TS,r*TS,TS,TS,P.wallExt);
+      Rr(sx,c*TS,r*TS,TS,3,P.wallExtHi);
+      Rr(sx,c*TS,r*TS+TS-3,TS,3,P.base);
+    } else if(c===8||c===16||c===24){ // glass partition
+      Rr(sx,c*TS,r*TS,TS,TS,P.woodF);
+      Rr(sx,c*TS+2,r*TS,TS-4,TS,P.glass);
+      Rr(sx,c*TS+TS/2-1,r*TS,1,TS,'rgba(255,255,255,.25)');
+      Rr(sx,c*TS+3,r*TS+1,2,TS-2,P.glassHi);
+    } else { // horizontal partition
+      Rr(sx,c*TS,r*TS,TS,TS,P.wallInt);
+      Rr(sx,c*TS,r*TS,TS,4,P.rail);
+      Rr(sx,c*TS,r*TS+TS-2,TS,2,P.base);
+    }
+  }
+  // doors (office wood door in frame)
+  [[9,4],[9,12],[9,20],[9,28],[12,4],[12,12],[12,20],[12,28]].forEach(([r,c])=>{
+    floorTile(c,r);
+    Rr(sx,c*TS-2,r*TS,2,TS,P.woodD); Rr(sx,c*TS+TS,r*TS,2,TS,P.woodD);
+    Rr(sx,c*TS+2,r*TS+2,TS-4,3,P.rail); // lintel
+  });
+
+  // arched windows on top wall (office rooms only)
+  [3,6,11,14,19,22].forEach(c=>win(c*TS+1,14));
+  function win(x,w){const y=3,h=22;
+    Rr(sx,x-2,y-1,w+4,h+3,P.frame); Rr(sx,x,y,w,h,P.glassW2); Rr(sx,x,y,w,h/2,P.glassW1);
+    sx.fillStyle=P.frame;sx.beginPath();sx.arc(x+w/2,y+2,w/2+1,Math.PI,0);sx.fill();
+    sx.fillStyle=P.glassW1;sx.beginPath();sx.arc(x+w/2,y+2,w/2-1,Math.PI,0);sx.fill();
+    Rr(sx,x+w/2-0.5,y,1,h,P.frame); Rr(sx,x-3,y+h,w+6,2,P.sill); Rr(sx,x+2,y+3,3,5,'rgba(255,255,255,.35)');}
+
+  // rugs per office room
+  rug(2,4,5,4,P.rug[0]); rug(10,4,5,4,P.rug[2]); rug(18,4,5,4,P.rug[3]);
+  rug(2,14,5,4,P.rug[1]); rug(10,14,5,4,P.rug[2]); rug(18,14,5,4,P.rug[0]);
+  function rug(c,r,w,h,col){const x=c*TS,y=r*TS,pw=w*TS,ph=h*TS;
+    Rr(sx,x,y,pw,ph,col); Rr(sx,x+3,y+3,pw-6,ph-6,shade(col,22)); Rr(sx,x+6,y+6,pw-12,ph-12,col);}
+
+  // desks
+  AGENTS.forEach(a=>{ if(a.id!=='maestro') desk(a.c,a.r-1,true); });
+  reception(1,11);
+  function desk(c,r,mon){const x=c*TS,y=r*TS;
+    Rr(sx,x-3,y+6,TS+6,9,P.woodD); Rr(sx,x-3,y+6,TS+6,3,P.woodL);
+    Rr(sx,x-1,y+15,2,2,P.woodD); Rr(sx,x+TS-1,y+15,2,2,P.woodD);
+    if(mon){ Rr(sx,x+3,y-2,10,8,'#2a2f36'); Rr(sx,x+4,y-1,8,5,'#1b2026'); Rr(sx,x+7,y+6,2,2,'#3a3f47'); }
+    Rr(sx,x+TS-4,y+7,3,3,'#f2e6cc');}
+  function reception(c,r){const x=c*TS,y=r*TS;
+    Rr(sx,x,y+4,TS+8,10,P.wood); Rr(sx,x,y+4,TS+8,3,P.woodL); Rr(sx,x,y+11,TS+8,3,P.woodD);
+    Rr(sx,x+2,y-1,7,6,'#2a2f36');}
+
+  // bookshelves
+  shelf(7*TS,4*TS); shelf(23*TS-14,4*TS); shelf(7*TS,14*TS);
+  function shelf(x,y){Rr(sx,x,y,14,30,P.wood);Rr(sx,x,y,14,2,P.woodL);
+    for(let s=0;s<3;s++){const sy=y+3+s*9;Rr(sx,x,sy+7,14,1,P.woodD);
+      for(let b=0;b<4;b++){const bx=x+1+b*3,bh=4+(sd(x+y+s*4+b)*4|0);Rr(sx,bx,sy+8-bh,2,bh,P.book[(x+y+s+b)%P.book.length]);}}}
+
+  // plants
+  [[8*TS-6,4*TS+14],[15*TS-6,5*TS+10],[17*TS+2,4*TS+14],[8*TS+2,14*TS+14],[17*TS-6,14*TS+10],[2*TS+2,12*TS-2]]
+    .forEach(([x,y])=>pot(x,y));
+  function pot(x,y){Rr(sx,x,y+8,10,7,P.pot);Rr(sx,x,y+8,10,2,shade(P.pot,20));
+    for(let i=0;i<5;i++){const lx=x+1+i*2,lh=6+(sd(x+y+i)*5|0);Rr(sx,lx,y+8-lh,2,lh,P.leaf[i%3]);}}
+
+  // ---- BREAK ROOM (cols25-30, rows2-8) ----
+  // sofa
+  const sX=26*TS, sY=3*TS+4;
+  Rr(sx,sX,sY+5,44,9,'#4f7fa0'); Rr(sx,sX+1,sY,42,7,'#6a9ac0'); Rr(sx,sX+2,sY+2,18,4,'#87b0d6');
+  Rr(sx,sX+23,sY+2,18,4,'#87b0d6'); Rr(sx,sX,sY+13,44,2,shade('#4f7fa0',-25));
+  // coffee table + mug
+  Rr(sx,27*TS,6*TS+4,20,8,P.wood); Rr(sx,27*TS,6*TS+4,20,2,P.woodL); Rr(sx,27*TS+7,6*TS+1,5,4,'#f2e6cc');
+  // TV on brick wall
+  Rr(sx,26*TS+3,1*TS+2,26,15,'#20262c'); Rr(sx,26*TS+5,1*TS+4,22,11,'#0f7d8a'); Rr(sx,26*TS+5,1*TS+4,22,5,'#12a0af');
+  // coffee machine
+  Rr(sx,29*TS+2,5*TS,9,12,'#3a414c'); Rr(sx,29*TS+4,5*TS+2,5,4,'#1b2026'); Rr(sx,29*TS+4,5*TS+8,5,3,'#f2e6cc');
+  // plant
+  pot(25*TS+3,6*TS+10);
+
+  // ---- WC (cols25-30, rows13-18) ----
+  // stall divider
+  Rr(sx,26*TS-2,13*TS,2,5*TS,'#dfe4dc');
+  // toilet: cistern (tank) + bowl + seat ring, viewed top-down
+  const tX=27*TS+3, tY=13*TS+6;
+  Rr(sx,tX-1,tY,12,5,'#eef2f2');              // tank
+  Rr(sx,tX-1,tY,12,2,'#dbe2e2');              // lid
+  Rr(sx,tX+9,tY+1,2,2,'#a9b3b3');             // flush button
+  ell(sx,tX+5,tY+12,7,8,'#f2f5f5');           // bowl body (white)
+  ell(sx,tX+5,tY+12,7,8,'#eef2f2');
+  ell(sx,tX+5,tY+11,5,6,'#cdd6d6');           // seat opening
+  ell(sx,tX+5,tY+11,3,4,'#aab5b5');           // hole
+  Rr(sx,tX+2,tY+19,6,3,'#dbe2e2');            // pedestal
+  // toilet-paper holder
+  Rr(sx,25*TS+3,13*TS+5,4,4,'#f7f7f3'); Rr(sx,25*TS+4,13*TS+6,2,2,'#cdd6d6'); Rr(sx,25*TS+3,13*TS+9,4,2,'#f7f7f3');
+  // sink + mirror
+  ell(sx,29*TS+5,14*TS+7,5,4,'#f2f5f5'); Rr(sx,29*TS+4,14*TS+3,2,3,P.metal);
+  Rr(sx,29*TS+1,13*TS+2,8,7,'#bfe0e6'); Rr(sx,29*TS+2,13*TS+3,6,5,'rgba(255,255,255,.22)');
+
+  // ---- CORRIDOR inventory ----
+  // meeting table (center)
+  Rr(sx,15*TS-2,10*TS+2,TS*2+4,12,P.wood); Rr(sx,15*TS-2,10*TS+2,TS*2+4,3,P.woodL);
+  // water cooler (left)
+  Rr(sx,2*TS+2,10*TS+2,7,6,'#bfe6f5'); Rr(sx,2*TS+1,10*TS+7,9,8,'#eef3f5');
+  // printer (right)
+  Rr(sx,29*TS+2,10*TS+3,10,9,'#d0d4d8'); Rr(sx,29*TS+3,10*TS+5,8,2,'#3a3f47'); Rr(sx,29*TS+4,10*TS+8,6,3,'#f2e6cc');
+  // filing cabinet
+  Rr(sx,20*TS,10*TS+2,10,13,'#8a929a'); Rr(sx,20*TS,10*TS+5,10,1,'#5a626a'); Rr(sx,20*TS,10*TS+9,10,1,'#5a626a'); Rr(sx,20*TS+4,10*TS+3,3,1,'#3a3f47');
+  // notice board
+  Rr(sx,11*TS,9*TS+3,12,5,'#8a5a34'); Rr(sx,11*TS+2,9*TS+4,3,3,'#e0a24a'); Rr(sx,11*TS+7,9*TS+4,3,3,'#4f8a4a');
+
+  // wall pictures
+  Rr(sx,4*TS,2*TS+3,9,7,P.frame); Rr(sx,4*TS+1,2*TS+4,7,5,P.teal);
+  Rr(sx,18*TS,2*TS+3,9,7,P.frame); Rr(sx,18*TS+1,2*TS+4,7,5,P.amber);
+}
+drawScene();
+
+// ===== pathfinding =====
+function bfs(sc,sr,gc,gr){
+  if(!open(gc,gr)||(sc===gc&&sr===gr))return [];
+  const q=[[sc,sr]],prev={},seen=new Set([sr*COLS+sc]),dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+  while(q.length){const [c,r]=q.shift();
+    if(c===gc&&r===gr){const p=[];let k=r*COLS+c;while(k!==sr*COLS+sc){const cc=k%COLS,rr=(k-cc)/COLS;p.unshift({c:cc,r:rr});k=prev[k];}return p;}
+    for(const[dc,dr]of dirs){const nc=c+dc,nr=r+dr,key=nr*COLS+nc;
+      if(open(nc,nr)&&!seen.has(key)){seen.add(key);prev[key]=r*COLS+c;q.push([nc,nr]);}}}
+  return [];
+}
+
+// ===== char state =====
+AGENTS.forEach(a=>{const fx=a.c*TS+TS/2,fy=a.r*TS+TS;a.px=fx;a.py=fy;a.tc=a.c;a.tr=a.r;
+  a.seat={c:a.c,r:a.r};a.face='down';a.frame=0;a.path=[];a.moveRes=null;a.busy=false;a.tok=0;
+  a.emote=null;a.think=false;a.act='idle';a.interrupt=false;a.wob=0;});
+const SPEED=1.0;
+function moveTo(a,c,r){return new Promise(res=>{a.path=bfs(a.tc,a.tr,c,r);a.moveRes=res;if(!a.path.length){a.moveRes=null;res();}});}
+function updateMove(a){
+  if(a.interrupt){a.interrupt=false;a.path=[];if(a.moveRes){const f=a.moveRes;a.moveRes=null;f();}}
+  if(!a.path.length)return;
+  const t=a.path[0],tx=t.c*TS+TS/2,ty=t.r*TS+TS,dx=tx-a.px,dy=ty-a.py,d=Math.hypot(dx,dy);
+  a.face=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');
+  if(d<=SPEED){a.px=tx;a.py=ty;a.tc=t.c;a.tr=t.r;a.path.shift();
+    if(!a.path.length&&a.moveRes){const f=a.moveRes;a.moveRes=null;f();}}
+  else{a.px+=dx/d*SPEED;a.py+=dy/d*SPEED;}
+}
+
+// ===== draw char =====
+let TICK=0;
+function drawChar(g,a){
+  const walking=a.path.length>0;
+  let x=Math.round(a.px), y=Math.round(a.py);
+  const dancing=a.act==='dance';
+  if(dancing) x+=Math.round(Math.sin(TICK*0.25)*2);
+  const sitting=(a.act==='sit'||a.act==='rest');
+  ell(g,x,y-1,6,2,P.shadow);
+  const pants='#3a2a1e', fr=Math.floor((walking?TICK:0)/6)%2;
+  // legs
+  if(sitting){Rr(g,x-3,y-4,2,3,pants);Rr(g,x+1,y-4,2,3,pants);}
+  else if(walking||dancing){const f=Math.floor(TICK/5)%2;
+    if(f===0){Rr(g,x-3,y-4,2,4,pants);Rr(g,x+1,y-3,2,3,pants);}else{Rr(g,x-3,y-3,2,3,pants);Rr(g,x+1,y-4,2,4,pants);}}
+  else{Rr(g,x-3,y-4,2,4,pants);Rr(g,x+1,y-4,2,4,pants);}
+  // torso
+  Rr(g,x-4,y-11,8,7,a.shirt); Rr(g,x-4,y-5,8,1,shade(a.shirt,-25));
+  // arms
+  if(dancing){Rr(g,x-6,y-14,2,6,shade(a.shirt,-8));Rr(g,x+4,y-14,2,6,shade(a.shirt,-8));}
+  else{const armY=a.act==='work'?(Math.floor(TICK/6)%2?y-10:y-9):y-10;
+    Rr(g,x-5,y-10,2,5,shade(a.shirt,-8));Rr(g,x+3,armY,2,5,shade(a.shirt,-8));}
+  // head
+  Rr(g,x-3,y-17,6,6,a.skin);
+  // hair
+  if(a.face==='up'){Rr(g,x-3,y-18,6,5,a.hair);}
+  else{Rr(g,x-3,y-18,6,3,a.hair);Rr(g,x-3,y-17,1,3,a.hair);Rr(g,x+2,y-17,1,3,a.hair);}
+  // face
+  if(a.face!=='up'){
+    if(a.act==='rest'){Rr(g,x-2,y-13,2,1,'#2a241f');Rr(g,x+1,y-13,2,1,'#2a241f');} // closed eyes
+    else if(a.face==='left')Rr(g,x-2,y-14,1,1,'#2a241f');
+    else if(a.face==='right')Rr(g,x+1,y-14,1,1,'#2a241f');
+    else{Rr(g,x-2,y-14,1,1,'#2a241f');Rr(g,x+1,y-14,1,1,'#2a241f');}
+  }
+}
+
+// ===== overlay dom =====
+const labelLayer=document.createDocumentFragment();
+ROOMS.forEach(rm=>{const d=document.createElement('div');d.className='rlabel';d.textContent=rm.t;
+  d.style.left=(rm.c*TS/W*100)+'%';d.style.top=(rm.r*TS/H*100)+'%';labelLayer.appendChild(d);});
+overlay.appendChild(labelLayer);
+AGENTS.forEach(a=>{a.tagEl=document.createElement('div');a.tagEl.className='tag';a.tagEl.textContent=a.name;
+  a.bubEl=document.createElement('div');a.bubEl.className='bub';overlay.append(a.tagEl,a.bubEl);});
+const ticketEl=document.createElement('div');ticketEl.className='ticket';ticketEl.innerHTML='<span id="tkTxt"></span>';overlay.appendChild(ticketEl);
+const stampEl=document.createElement('div');stampEl.className='stamp';overlay.appendChild(stampEl);
+let ticketHolder=null, ticketTile={c:byId.maestro.c,r:byId.maestro.r}, ticketPos={x:0,y:0};
+const toP=(x,y,el)=>{el.style.left=(x/W*100)+'%';el.style.top=(y/H*100)+'%';};
+
+// legend
+const legend=document.getElementById('legend');
+AGENTS.forEach(a=>{const r=document.createElement('div');r.className='r';
+  r.innerHTML=`<span class="dot" style="background:${a.shirt}"></span><b>${a.name}</b> — ${a.role} <span style="color:#9a7f58">(${a.model})</span>`;legend.appendChild(r);});
+legend.insertAdjacentHTML('beforeend','<div class="rooms">🏠 ცალკე ოთახები + ☕ Break Room + 🚻 WC. ტასქი ხელიდან ხელში გადადis: აგენტი მიდის შესაბამის ოთახში ასაღებად, თავის ოთახში ასრულებს, შემდეგ ოთახში მიაქვს.</div>');
+
+// ===== loop =====
+function loop(){
+  TICK++;
+  AGENTS.forEach(updateMove);
+  ctx.drawImage(scene,0,0);
+  if(ticketHolder){ticketPos.x=ticketHolder.px;ticketPos.y=ticketHolder.py-19;}
+  else{ticketPos.x=ticketTile.c*TS+TS/2;ticketPos.y=(ticketTile.r-1)*TS+TS/2;}
+  [...AGENTS].sort((a,b)=>a.py-b.py).forEach(a=>{
+    if(a.act==='work'){const dx=a.seat.c*TS+TS/2,dy=(a.seat.r-1)*TS;
+      ctx.save();ctx.globalCompositeOperation='lighter';ell(ctx,dx,dy+2,7,5,'rgba(80,200,180,.26)');ctx.restore();}
+    drawChar(ctx,a);
+  });
+  // warm lighting
+  ctx.save();ctx.globalCompositeOperation='multiply';
+  const vg=ctx.createRadialGradient(W/2,H*.42,90,W/2,H*.42,W*.6);
+  vg.addColorStop(0,'rgba(255,244,220,1)');vg.addColorStop(1,'rgba(150,105,60,.62)');
+  ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);ctx.restore();
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  [[6*TS,5*TS],[13*TS,5*TS],[21*TS,5*TS],[27*TS,4*TS],[6*TS,15*TS],[13*TS,15*TS],[16*TS,10*TS]].forEach(([lx,ly])=>{
+    const gg=ctx.createRadialGradient(lx,ly,2,lx,ly,30);gg.addColorStop(0,'rgba(255,214,140,.26)');gg.addColorStop(1,'rgba(255,214,140,0)');
+    ctx.fillStyle=gg;ctx.fillRect(lx-30,ly-30,60,60);});
+  ctx.restore();
+  // overlay positions
+  AGENTS.forEach(a=>{
+    toP(a.px,a.py-20,a.tagEl);
+    toP(a.px,a.py-30,a.bubEl);
+    if(a.emote){a.bubEl.textContent=a.emote;a.bubEl.classList.toggle('think',!!a.think);a.bubEl.classList.add('show');}
+    else a.bubEl.classList.remove('show');
+  });
+  toP(ticketPos.x,ticketPos.y,ticketEl);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// ===== util =====
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const logBox=document.getElementById('log'),statusbar=document.getElementById('statusbar');
+const status=t=>statusbar.textContent=t;
+function log(msg,cls=''){const d=new Date();const li=document.createElement('div');li.className='li '+cls;
+  li.innerHTML=`<span class="t">${d.toLocaleTimeString('ka-GE',{hour12:false})}</span>${msg}`;logBox.appendChild(li);logBox.scrollTop=logBox.scrollHeight;}
+const dot=a=>`<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${a.shirt};margin-right:3px"></span>`;
+async function doStamp(a,txt,ok){stampEl.textContent=txt;stampEl.className='stamp '+(ok?'ok':'bad');
+  toP(a.px,a.py-34,stampEl);requestAnimationFrame(()=>stampEl.classList.add('show'));await sleep(950);stampEl.classList.remove('show');await sleep(230);}
+function recruit(a){a.tok++;a.busy=true;a.interrupt=true;a.emote=null;a.think=false;a.act='idle';}
+function setThink(a,t){a.emote=t;a.think=true;}
+
+// ===== idle life =====
+const THOUGHTS=['ხინკალი 🥟','შვებულება 🏖️','ყავა ☕','დედლაინი 😰','ბაგი 🐛','💤','კოდი 💭','🎶','🍕?','☕','😴','🤔'];
+const ACTS=[
+  {tile:{c:27,r:4},act:'rest',room:'Break',think:['📺','😌','💤']},        // sofa
+  {tile:{c:29,r:6},act:'dance',room:'Break',think:['🕺','🎶','💃']},       // dance
+  {tile:{c:27,r:6},act:'sit',room:'Break',think:['☕','😋','📖']},         // coffee table
+  {tile:{c:27,r:15},act:'sit',room:'WC',think:['📱','🤔','😮‍💨','💭']},    // toilet
+  {tile:{c:3,r:10},act:'idle',room:'Cooler',think:['💬','💧','😄']},       // water cooler
+];
+function nearTile(a,rad){for(let i=0;i<14;i++){const c=a.seat.c+((Math.random()*rad*2|0)-rad),r=a.seat.r+((Math.random()*rad*2|0)-rad);if(open(c,r))return{c,r};}return a.seat;}
+async function idle(a){
+  const tok=(++a.tok);a.busy=true;
+  const useAct=Math.random()<0.6;
+  const spot=useAct?pick(ACTS):{tile:nearTile(a,2),act:'idle',think:[pick(THOUGHTS)]};
+  await moveTo(a,spot.tile.c,spot.tile.r); if(a.tok!==tok)return rest(a);
+  a.act=spot.act; a.face='down'; setThink(a,pick(spot.think));
+  const dur=2600+Math.random()*2600;
+  const t0=Date.now();
+  while(Date.now()-t0<dur){ await sleep(900); if(a.tok!==tok)return rest(a);
+    if(Math.random()<0.5) setThink(a,pick(spot.think.concat(THOUGHTS))); }
+  a.act='idle'; a.emote=null; a.think=false;
+  await moveTo(a,a.seat.c,a.seat.r); rest(a);
+}
+function rest(a){a.act='idle';a.emote=null;a.think=false;a.busy=false;a.face='down';}
+setInterval(()=>{const c=AGENTS.filter(x=>!x.busy);if(c.length&&Math.random()<0.72)idle(pick(c));},2400);
+
+// ===== routes =====
+const S=(agent,label,msg,dur,ex={})=>({agent,label,msg,dur,...ex});
+const routes={
+  feature:()=>[
+    S('nino','📝','ვწერ speც-ს — user stories + API + ACs + Security',1600,{gate:'✅ SPEC',gl:'GATE 1 — user-მ speც დაამტკიცა'}),
+    S('maestro','🎯','spike — riskiest assumption (<2სთ)',800,{gate:'✅ SPIKE',gl:'GATE 2 — spike დადასტურდა'}),
+    S('tamar','🎨','wireframe + village palette',1400),
+    S('vakho','⚙️','FastAPI route, model, tests',1600),
+    S('lela','💻','React UI — map/chat, mobile-first',1500),
+    S('dato','🔍','code review — correctness + security',1500,{fail:true,gate:'✅ PASS',gl:'commit gate — code-review PASS'}),
+    S('maestro','🛡️','dep scan — pip-audit + npm audit',700),
+    S('mariam','🧪','pytest + N-1 regression',1400,{gate:'✅ 107/107',gl:'QA — ყველა AC pass'}),
+    S('beka','🛰️','E2E verify — docker → seed → endpoints',1200),
+    S('irakli','🕵️','tech audit — live DB/API/LLM',1600,{fail:true,gate:'GO ✅',gl:'tech-auditor: HEALTHY → GO'}),
+    S('maestro','🚦','human gate — user მოიწონა',900,{gate:'🎉 SHIPPED',gl:'HUMAN GATE — ჩაიწერა phases.md-ში',win:true}),
+  ],
+  backend:()=>[
+    S('nino','📝','speც — API contract + data model',1500,{gate:'✅ SPEC',gl:'GATE 1 — speც approved'}),
+    S('giorgi','📐','design doc — ADR + interfaces',1400),
+    S('vakho','⚙️','FastAPI — routes, migrations',1700),
+    S('dato','🔍','deep review — security + errors',1600,{fail:true,gate:'✅ PASS',gl:'commit gate — PASS'}),
+    S('maestro','🛡️','dep scan',700),
+    S('mariam','🧪','pytest + regression',1400,{gate:'✅ TESTS',gl:'QA — ACs pass'}),
+    S('beka','🛰️','verify — endpoints + curl',1100),
+    S('irakli','🕵️','audit — DB + API',1600,{fail:true,gate:'GO ✅',gl:'tech-auditor GO'}),
+    S('maestro','🚦','human gate',900,{gate:'🎉 SHIPPED',gl:'HUMAN GATE passed',win:true}),
+  ],
+  deploy:()=>[
+    S('nino','📝','deploy speც — infra + Security',1500,{gate:'✅ SPEC',gl:'GATE 1 — speც approved'}),
+    S('zaza','🔌','railway.toml, vercel.json, env',1700),
+    S('dato','🔍','config review — secrets + CORS',1300,{gate:'✅ PASS',gl:'commit gate — PASS'}),
+    S('maestro','🛡️','npm audit → 0 vulns',800),
+    S('mariam','🧪','107/107 regression',1200,{gate:'✅ 107/107',gl:'QA regression pass'}),
+    S('irakli','🕵️','live system audit',1600,{fail:true,gate:'GO ✅',gl:'tech-auditor GO'}),
+    S('maestro','🚦','human gate — live URL',900,{gate:'🚀 LIVE',gl:'HUMAN GATE — production live',win:true}),
+  ],
+};
+const PRESET_TXT={feature:'ახალი ჩატ ფიჩერი',backend:'ახალი API endpoint',deploy:'Deploy → Railway + Vercel'};
+
+// ===== runner (room-to-room delivery) =====
+let running=false;
+async function work(a,st,retry){
+  a.face='up';a.act='work';a.emote=st.label;a.think=false;
+  if(!retry) log(`${dot(a)} <b>${a.name}</b>: ${st.msg}`);
+  status(`${a.name} მუშაობს — ${st.label}`);
+  await sleep(st.dur);
+}
+async function step(st,nextId){
+  const a=byId[st.agent]; recruit(a);
+  status(`${a.name} მიდის ასაღებად…`);
+  await moveTo(a,ticketTile.c,ticketTile.r);   // go to the room where the task is
+  ticketHolder=a;
+  await moveTo(a,a.seat.c,a.seat.r);            // carry it to own desk
+  await work(a,st,false);
+
+  if(st.fail && Math.random()<0.4){
+    a.act='idle';a.emote=null; await doStamp(a,'❌ FAIL',false);
+    log(`❌ <b>${a.name}</b>: ვერ გავიდა — ვახოს ოთახში ბრუნდება!`,'fail');
+    // carry it back to Dev room
+    await moveTo(a,byId.vakho.seat.c,byId.vakho.seat.r);
+    ticketHolder=null; ticketTile={c:byId.vakho.seat.c,r:byId.vakho.seat.r};
+    moveTo(a,a.seat.c,a.seat.r).then(()=>a.busy=false);
+    await step(S('vakho','🔧','ვასწორებ '+a.name+'-ის შენიშვნებს',1300), st.agent); // vakho fixes, delivers back
+    recruit(a); status(`${a.name} ხელახლა ამოწმებს…`);
+    await moveTo(a,ticketTile.c,ticketTile.r); ticketHolder=a; await moveTo(a,a.seat.c,a.seat.r);
+    log(`🔁 <b>${a.name}</b>: ხელახალი review…`); await work(a,st,true);
+  }
+  if(st.gate){a.act='idle'; await doStamp(a,st.gate,true); log(`🚦 ${st.gl}`, st.win?'win':'gate');}
+  a.act='idle';a.emote=null;a.face='down';
+
+  if(nextId){const b=byId[nextId]; status(`${a.name} აბარებს ${b.name}-ს…`);
+    await moveTo(a,b.seat.c,b.seat.r);                      // carry finished work to next room
+    ticketHolder=null; ticketTile={c:b.seat.c,r:b.seat.r};
+    moveTo(a,a.seat.c,a.seat.r).then(()=>a.busy=false);     // stroll home
+  } else { ticketHolder=null; a.busy=false; }
+}
+async function run(text,routeFn){
+  if(running)return; running=true; setBtns(false); logBox.innerHTML='';
+  log(`🎯 ახალი თასქი: „${text}“`,'gate');
+  document.getElementById('tkTxt').textContent=text.length>22?text.slice(0,22)+'…':text;
+  ticketHolder=null; ticketTile={c:byId.maestro.c,r:byId.maestro.r}; ticketEl.style.opacity='1';
+  const route=routeFn();
+  for(let i=0;i<route.length;i++){ await step(route[i], route[i+1]?.agent); }
+  ticketEl.style.opacity='0'; status('🎉 თასქი დასრულდა და ჩაბარდა!'); confetti();
+  running=false; setBtns(true);
+}
+function setBtns(on){document.getElementById('runBtn').disabled=!on;document.querySelectorAll('.chip').forEach(b=>b.disabled=!on);}
+function confetti(){const em=['🎉','✨','🍷','🎊','⭐','🌿'];for(let i=0;i<28;i++){const s=document.createElement('div');s.className='confetti';s.textContent=pick(em);s.style.left=Math.random()*100+'vw';s.style.animationDuration=(2+Math.random()*2)+'s';s.style.animationDelay=(Math.random()*.6)+'s';document.body.appendChild(s);setTimeout(()=>s.remove(),4200);}}
+
+document.getElementById('runBtn').onclick=()=>{const t=document.getElementById('taskInput').value.trim();run(t||'ზოგადი ფიჩერი',routes.feature);};
+document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('runBtn').click();});
+document.querySelectorAll('.chip').forEach(b=>{b.onclick=()=>{const k=b.dataset.preset;document.getElementById('taskInput').value=PRESET_TXT[k];run(PRESET_TXT[k],routes[k]);};});
+// Real-time bridge: open with ?task=...&route=feature|backend|deploy&run=1 (or #demo)
+// so a task given in chat launches the live office and the agents work immediately.
+const params=new URLSearchParams(location.search);
+const qTask=params.get('task'), qRoute=params.get('route');
+if(qTask) document.getElementById('taskInput').value=qTask;
+if(location.hash==='#demo' || params.get('run')==='1'){
+  const rt=routes[qRoute]||routes.feature;
+  setTimeout(()=>run(qTask||PRESET_TXT[qRoute]||'ზოგადი ფიჩერი', rt), 600);
+}
+</script>
+</body>
+</html>
