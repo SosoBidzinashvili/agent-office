@@ -14,7 +14,7 @@
   body{font-family:"Trebuchet MS","Segoe UI",system-ui,"Noto Sans Georgian",sans-serif;
     background:radial-gradient(1100px 560px at 50% -8%, #3b2c1e 0%, #241a12 55%, #17110c 100%);
     color:var(--cream);min-height:100vh;padding:18px 14px 40px}
-  .wrap{max-width:1120px;margin:0 auto}
+  .wrap{max-width:1500px;margin:0 auto}
   .topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
   .logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#4f9a92,#2f6f68);
     display:grid;place-items:center;font-size:24px;box-shadow:0 6px 18px #0007,inset 0 2px 0 #ffffff22}
@@ -33,7 +33,7 @@
   button.chip:hover{background:var(--teal);color:#fff}
   button:disabled{opacity:.45;cursor:not-allowed;transform:none}
 
-  .frame{position:relative;width:100%;max-width:1080px;margin:0 auto;border:6px solid #3a2c1e;border-radius:16px;
+  .frame{position:relative;width:100%;border:6px solid #3a2c1e;border-radius:16px;
     overflow:hidden;box-shadow:0 24px 60px #000a,inset 0 0 0 2px #6b4a2e;background:#17110c}
   .view{position:relative;width:100%;aspect-ratio:512/320;overflow:hidden}
   canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;display:block}
@@ -73,6 +73,46 @@
   .rooms{font-size:11px;color:#b89a70;margin-top:8px;line-height:1.5}
   .confetti{position:fixed;top:-20px;font-size:20px;z-index:99;pointer-events:none;animation:fall linear forwards}
   @keyframes fall{to{transform:translateY(108vh) rotate(520deg);opacity:0}}
+
+  /* ---- layout: office + right chat ---- */
+  .main{display:flex;gap:14px;align-items:stretch;margin-top:4px}
+  @media(max-width:940px){.main{flex-direction:column}}
+  .left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:10px}
+  .chat{width:340px;flex:0 0 340px;display:flex;flex-direction:column;background:#20160f;
+    border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 12px 34px #0008}
+  @media(max-width:940px){.chat{width:auto;flex:1 1 auto;height:380px}}
+  .chat-head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(135deg,#2f6f68,#245852);color:#fff}
+  .chat-head .hav{width:36px;height:36px;border-radius:50%;background:#e07e2e;display:grid;place-items:center;font-size:18px;box-shadow:0 2px 6px #0005}
+  .chat-head b{font-size:14px}.chat-head .st{font-size:11px;opacity:.92}.chat-head .st b{color:#a8f0c8}
+  .msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:9px;background:#17110c}
+  .msgs .hint{color:#8a7452;font-size:12.5px;text-align:center;margin:auto;max-width:230px;line-height:1.55}
+  .mrow{display:flex;gap:7px;align-items:flex-end;max-width:100%}
+  .mrow.me{justify-content:flex-end}
+  .mav{width:24px;height:24px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;font-size:11px;color:#fff;font-weight:800;box-shadow:0 1px 3px #0006}
+  .mb{max-width:80%;padding:7px 10px;border-radius:13px;font-size:12.5px;line-height:1.38;box-shadow:0 1px 4px #0004;word-wrap:break-word;overflow-wrap:anywhere}
+  .mb .who{display:block;font-size:9.5px;font-weight:800;opacity:.6;margin-bottom:1px}
+  .mrow.agent .mb{background:#fff;color:#241a12;border-bottom-left-radius:4px}
+  .mrow.orc .mb{background:#f0e5cf;color:#241a12;border-bottom-left-radius:4px}
+  .mrow.me .mb{background:linear-gradient(135deg,#3f9f95,#2d7a71);color:#fff;border-bottom-right-radius:4px}
+  .mrow.gate{justify-content:center}
+  .mrow.gate .mb{background:#3a2c1e;color:#f0c47a;font-weight:800;border-radius:20px;text-align:center;font-size:11.5px;max-width:92%}
+  .mrow.gate.win .mb{background:#20401f;color:#9fe0a8}.mrow.gate.fail .mb{background:#4a2620;color:#f0a494}
+  .chat-in{display:flex;gap:8px;padding:10px;border-top:1px solid #3a2c1e;background:#20160f}
+  .chat-in input{flex:1;border:1px solid #4a3826;background:#17110c;color:#f2e6cc;border-radius:20px;padding:10px 14px;font-size:13px;font-family:inherit}
+  .chat-in input:focus{outline:2px solid var(--teal)}
+  .chat-in button{width:42px;height:42px;border-radius:50%;flex:0 0 auto;border:none;color:#fff;font-size:15px;cursor:pointer;
+    background:linear-gradient(135deg,#3f9f95,#2d7a71);display:grid;place-items:center;padding:0}
+  .chat-in button:disabled{opacity:.45;cursor:not-allowed}
+  /* indicators */
+  .infobar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:center;
+    background:#2a2018cc;border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:12px}
+  .infobar .st{color:var(--amber);font-weight:700;margin-right:auto}
+  .ind{display:inline-flex;align-items:center;gap:5px;color:#c9b48c}
+  .ind i{width:9px;height:9px;border-radius:50%;display:inline-block;box-shadow:0 0 5px currentColor}
+  .sdot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle;background:#9a9a9a;box-shadow:0 0 4px currentColor}
+  .legend.strip{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
+  .legend.strip h3{width:100%;margin:0 0 4px}
+  .legend.strip .r{font-size:11px;padding:0}
 </style>
 </head>
 <body>
@@ -81,28 +121,41 @@
     <div class="logo">🏢</div>
     <div>
       <h1>Chveni Sopeli · <span style="color:var(--amber)">Garage</span></h1>
-      <div class="tagline">cozy ოფისი — <b>მალე კომპანია</b>. მიეცი თასქი, აგენტები ოთახებში დადიან და საქმეს აბარებენ 🚶</div>
-    </div>
-    <div class="controls">
-      <input id="taskInput" type="text" placeholder="თასქი…  მაგ: 'ბაზრის ჩატ ფიჩერი'">
-      <button class="go" id="runBtn">▶ მიეცი თასქი</button>
-      <button class="chip" data-preset="feature">🆕 ფიჩერი</button>
-      <button class="chip" data-preset="backend">🔧 Backend</button>
-      <button class="chip" data-preset="deploy">🚀 Deploy</button>
+      <div class="tagline">cozy ოფისი — <b>მალე კომპანია</b>. დაწერე დავალება ჩატში, ორკესტრატორი გუნდს გაანაწილებს 🎭</div>
     </div>
   </div>
 
-  <div class="frame">
-    <div class="view">
-      <canvas id="scene" width="512" height="320"></canvas>
-      <div class="overlay" id="overlay"></div>
+  <div class="main">
+    <div class="left">
+      <div class="frame">
+        <div class="view">
+          <canvas id="scene" width="512" height="320"></canvas>
+          <div class="overlay" id="overlay"></div>
+        </div>
+      </div>
+      <div class="infobar">
+        <span class="st" id="statusbar">☕ გუნდი ოფისშია…</span>
+        <span class="ind"><i style="background:#55c46a;color:#55c46a"></i>მუშაობს</span>
+        <span class="ind"><i style="background:#55a0e0;color:#55a0e0"></i>დადის</span>
+        <span class="ind"><i style="background:#b07cd0;color:#b07cd0"></i>შესვენება</span>
+        <span class="ind"><i style="background:#9a9a9a;color:#9a9a9a"></i>idle</span>
+      </div>
+      <div class="card legend strip" id="legend"><h3>🎭 გუნდი</h3></div>
     </div>
-  </div>
-  <div class="statusbar" id="statusbar">☕ აგენტები ისვენებენ… მიეცი თასქი.</div>
 
-  <div class="cols">
-    <div class="card log" id="log"></div>
-    <div class="card legend" id="legend"><h3>🎭 გუნდი</h3></div>
+    <div class="chat">
+      <div class="chat-head">
+        <div class="hav">🎭</div>
+        <div><b>ორკესტრატორი</b><div class="st">გუნდი • <b>11 online</b></div></div>
+      </div>
+      <div class="msgs" id="msgs">
+        <div class="hint">👋 დაწერე დავალება ქვემოთ.<br>ორკესტრატორი თავად გადაწყვეტს მიმართულებას და გუნდს გაანაწილებს.</div>
+      </div>
+      <div class="chat-in">
+        <input id="taskInput" type="text" placeholder="დაწერე დავალება…">
+        <button id="sendBtn" title="გაგზავნა">➤</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -341,7 +394,7 @@ function bfs(sc,sr,gc,gr){
 AGENTS.forEach(a=>{const fx=a.c*TS+TS/2,fy=a.r*TS+TS;a.px=fx;a.py=fy;a.tc=a.c;a.tr=a.r;
   a.seat={c:a.c,r:a.r};a.face='down';a.frame=0;a.path=[];a.moveRes=null;a.busy=false;a.tok=0;
   a.emote=null;a.think=false;a.act='idle';a.interrupt=false;a.wob=0;});
-const SPEED=1.0;
+const SPEED=0.5; // realistic walking pace
 function moveTo(a,c,r){return new Promise(res=>{a.path=bfs(a.tc,a.tr,c,r);a.moveRes=res;if(!a.path.length){a.moveRes=null;res();}});}
 function updateMove(a){
   if(a.interrupt){a.interrupt=false;a.path=[];if(a.moveRes){const f=a.moveRes;a.moveRes=null;f();}}
@@ -365,7 +418,7 @@ function drawChar(g,a){
   const pants='#3a2a1e', fr=Math.floor((walking?TICK:0)/6)%2;
   // legs
   if(sitting){Rr(g,x-3,y-4,2,3,pants);Rr(g,x+1,y-4,2,3,pants);}
-  else if(walking||dancing){const f=Math.floor(TICK/5)%2;
+  else if(walking||dancing){const f=Math.floor(TICK/9)%2;
     if(f===0){Rr(g,x-3,y-4,2,4,pants);Rr(g,x+1,y-3,2,3,pants);}else{Rr(g,x-3,y-3,2,3,pants);Rr(g,x+1,y-4,2,4,pants);}}
   else{Rr(g,x-3,y-4,2,4,pants);Rr(g,x+1,y-4,2,4,pants);}
   // torso
@@ -393,7 +446,8 @@ const labelLayer=document.createDocumentFragment();
 ROOMS.forEach(rm=>{const d=document.createElement('div');d.className='rlabel';d.textContent=rm.t;
   d.style.left=(rm.c*TS/W*100)+'%';d.style.top=(rm.r*TS/H*100)+'%';labelLayer.appendChild(d);});
 overlay.appendChild(labelLayer);
-AGENTS.forEach(a=>{a.tagEl=document.createElement('div');a.tagEl.className='tag';a.tagEl.textContent=a.name;
+AGENTS.forEach(a=>{a.tagEl=document.createElement('div');a.tagEl.className='tag';
+  a.tagEl.innerHTML='<i class="sdot"></i>'+a.name; a.sdot=a.tagEl.querySelector('.sdot');
   a.bubEl=document.createElement('div');a.bubEl.className='bub';overlay.append(a.tagEl,a.bubEl);});
 const ticketEl=document.createElement('div');ticketEl.className='ticket';ticketEl.innerHTML='<span id="tkTxt"></span>';overlay.appendChild(ticketEl);
 const stampEl=document.createElement('div');stampEl.className='stamp';overlay.appendChild(stampEl);
@@ -432,6 +486,9 @@ function loop(){
   AGENTS.forEach(a=>{
     toP(a.px,a.py-20,a.tagEl);
     toP(a.px,a.py-30,a.bubEl);
+    const col = a.path.length?'#55a0e0' : a.act==='work'?'#55c46a'
+      : (a.act==='dance'||a.act==='rest'||a.act==='sit')?'#b07cd0' : '#9a9a9a';
+    a.sdot.style.background=col; a.sdot.style.color=col;
     if(a.emote){a.bubEl.textContent=a.emote;a.bubEl.classList.toggle('think',!!a.think);a.bubEl.classList.add('show');}
     else a.bubEl.classList.remove('show');
   });
@@ -443,10 +500,17 @@ requestAnimationFrame(loop);
 // ===== util =====
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const pick=a=>a[Math.floor(Math.random()*a.length)];
-const logBox=document.getElementById('log'),statusbar=document.getElementById('statusbar');
-const status=t=>statusbar.textContent=t;
-function log(msg,cls=''){const d=new Date();const li=document.createElement('div');li.className='li '+cls;
-  li.innerHTML=`<span class="t">${d.toLocaleTimeString('ka-GE',{hour12:false})}</span>${msg}`;logBox.appendChild(li);logBox.scrollTop=logBox.scrollHeight;}
+const statusbar=document.getElementById('statusbar');
+const status=t=>{statusbar.textContent=t;};
+// ---- chat ----
+const msgsEl=document.getElementById('msgs');
+const esc=s=>String(s).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+function mrow(cls,html){const h=msgsEl.querySelector('.hint');if(h)h.remove();
+  const d=document.createElement('div');d.className='mrow '+cls;d.innerHTML=html;msgsEl.appendChild(d);msgsEl.scrollTop=msgsEl.scrollHeight;}
+const chatUser=t=>mrow('me',`<div class="mb">${esc(t)}</div>`);
+const chatOrc=t=>mrow('orc',`<div class="mav" style="background:#e07e2e">🎭</div><div class="mb"><span class="who">ორკესტრატორი</span>${t}</div>`);
+const chatAgent=(a,t)=>mrow('agent',`<div class="mav" style="background:${a.shirt}">${a.name[0]}</div><div class="mb"><span class="who">${a.name} · ${a.role}</span>${t}</div>`);
+const chatGate=(t,kind)=>mrow('gate '+(kind||''),`<div class="mb">${t}</div>`);
 const dot=a=>`<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${a.shirt};margin-right:3px"></span>`;
 async function doStamp(a,txt,ok){stampEl.textContent=txt;stampEl.className='stamp '+(ok?'ok':'bad');
   toP(a.px,a.py-34,stampEl);requestAnimationFrame(()=>stampEl.classList.add('show'));await sleep(950);stampEl.classList.remove('show');await sleep(230);}
@@ -462,22 +526,26 @@ const ACTS=[
   {tile:{c:27,r:15},act:'sit',room:'WC',think:['📱','🤔','😮‍💨','💭']},    // toilet
   {tile:{c:3,r:10},act:'idle',room:'Cooler',think:['💬','💧','😄']},       // water cooler
 ];
+const WORK_THOUGHTS=['💻','📊','⌨️','🐛→✅','🔧','📈','🧩','💭'];
 function nearTile(a,rad){for(let i=0;i<14;i++){const c=a.seat.c+((Math.random()*rad*2|0)-rad),r=a.seat.r+((Math.random()*rad*2|0)-rad);if(open(c,r))return{c,r};}return a.seat;}
 async function idle(a){
   const tok=(++a.tok);a.busy=true;
-  const useAct=Math.random()<0.6;
-  const spot=useAct?pick(ACTS):{tile:nearTile(a,2),act:'idle',think:[pick(THOUGHTS)]};
-  await moveTo(a,spot.tile.c,spot.tile.r); if(a.tok!==tok)return rest(a);
-  a.act=spot.act; a.face='down'; setThink(a,pick(spot.think));
-  const dur=2600+Math.random()*2600;
+  const roll=Math.random();
+  let target, act, thinks;
+  if(roll<0.55){ target=a.seat; act='work'; thinks=WORK_THOUGHTS; }               // ~55% busy at desk
+  else if(roll<0.75){ target=(Math.random()<0.5?{c:3,r:10}:nearTile(a,3)); act='idle'; thinks=['💬','💧','😄'].concat(THOUGHTS); }
+  else { const s=pick(ACTS); target=s.tile; act=s.act; thinks=s.think; }           // ~25% break activity
+  await moveTo(a,target.c,target.r); if(a.tok!==tok)return rest(a);
+  a.act=act; a.face=(act==='work'?'up':'down'); setThink(a,pick(thinks));
+  const dur=(act==='work'?2600:2200)+Math.random()*2400;
   const t0=Date.now();
-  while(Date.now()-t0<dur){ await sleep(900); if(a.tok!==tok)return rest(a);
-    if(Math.random()<0.5) setThink(a,pick(spot.think.concat(THOUGHTS))); }
-  a.act='idle'; a.emote=null; a.think=false;
+  while(Date.now()-t0<dur){ await sleep(1000); if(a.tok!==tok)return rest(a);
+    if(Math.random()<0.5) setThink(a,pick(thinks)); }
+  a.act='idle';a.emote=null;a.think=false;a.face='down';
   await moveTo(a,a.seat.c,a.seat.r); rest(a);
 }
 function rest(a){a.act='idle';a.emote=null;a.think=false;a.busy=false;a.face='down';}
-setInterval(()=>{const c=AGENTS.filter(x=>!x.busy);if(c.length&&Math.random()<0.72)idle(pick(c));},2400);
+setInterval(()=>{const c=AGENTS.filter(x=>!x.busy);if(c.length&&Math.random()<0.8)idle(pick(c));},2200);
 
 // ===== routes =====
 const S=(agent,label,msg,dur,ex={})=>({agent,label,msg,dur,...ex});
@@ -522,8 +590,8 @@ const PRESET_TXT={feature:'ახალი ჩატ ფიჩერი',backend
 let running=false;
 async function work(a,st,retry){
   a.face='up';a.act='work';a.emote=st.label;a.think=false;
-  if(!retry) log(`${dot(a)} <b>${a.name}</b>: ${st.msg}`);
-  status(`${a.name} მუშაობს — ${st.label}`);
+  if(!retry) chatAgent(a, `${st.label} ${st.msg}`);
+  status(`${a.name} მუშაობს — ${st.msg}`);
   await sleep(st.dur);
 }
 async function step(st,nextId){
@@ -536,7 +604,7 @@ async function step(st,nextId){
 
   if(st.fail && Math.random()<0.4){
     a.act='idle';a.emote=null; await doStamp(a,'❌ FAIL',false);
-    log(`❌ <b>${a.name}</b>: ვერ გავიდა — ვახოს ოთახში ბრუნდება!`,'fail');
+    chatGate(`❌ ${a.name}: ვერ გავიდა — ვახოსთან ბრუნდება 🔧`,'fail');
     // carry it back to Dev room
     await moveTo(a,byId.vakho.seat.c,byId.vakho.seat.r);
     ticketHolder=null; ticketTile={c:byId.vakho.seat.c,r:byId.vakho.seat.r};
@@ -544,9 +612,9 @@ async function step(st,nextId){
     await step(S('vakho','🔧','ვასწორებ '+a.name+'-ის შენიშვნებს',1300), st.agent); // vakho fixes, delivers back
     recruit(a); status(`${a.name} ხელახლა ამოწმებს…`);
     await moveTo(a,ticketTile.c,ticketTile.r); ticketHolder=a; await moveTo(a,a.seat.c,a.seat.r);
-    log(`🔁 <b>${a.name}</b>: ხელახალი review…`); await work(a,st,true);
+    chatAgent(a,'🔁 ხელახალი review…'); await work(a,st,true);
   }
-  if(st.gate){a.act='idle'; await doStamp(a,st.gate,true); log(`🚦 ${st.gl}`, st.win?'win':'gate');}
+  if(st.gate){a.act='idle'; await doStamp(a,st.gate,true); chatGate(`🚦 ${st.gl}`, st.win?'win':'');}
   a.act='idle';a.emote=null;a.face='down';
 
   if(nextId){const b=byId[nextId]; status(`${a.name} აბარებს ${b.name}-ს…`);
@@ -555,30 +623,41 @@ async function step(st,nextId){
     moveTo(a,a.seat.c,a.seat.r).then(()=>a.busy=false);     // stroll home
   } else { ticketHolder=null; a.busy=false; }
 }
-async function run(text,routeFn){
-  if(running)return; running=true; setBtns(false); logBox.innerHTML='';
-  log(`🎯 ახალი თასქი: „${text}“`,'gate');
+// orchestrator decides the direction from the task text
+const ROUTE_NAME={feature:'🆕 Feature',backend:'🔧 Backend',deploy:'🚀 Deploy'};
+const ROUTE_WHY={feature:'UI / პროდუქტის ფიჩერი',backend:'backend / API ცვლილება',deploy:'დეპლოი / ინფრა'};
+function decideRoute(text){const t=(text||'').toLowerCase();
+  if(/deploy|დეპლ|railway|vercel|ჰოსტ|prod|launch|გავუშვ|live/.test(t)) return 'deploy';
+  if(/\bapi\b|backend|ბექენ|endpoint|route|რაუტ|model|მოდელ|migrat|მიგრაც|schema|სქემ|\bdb\b|ბაზ|query|crud/.test(t)) return 'backend';
+  return 'feature';}
+async function run(text,forced){
+  if(running)return; running=true; setBtns(false);
+  chatUser(text);
+  const key=forced||decideRoute(text);
+  await sleep(500);
+  chatOrc(`მივიღე ✅ მიმართულება: <b>${ROUTE_NAME[key]}</b> — ${ROUTE_WHY[key]}. ვანაწილებ გუნდს… 🚀`);
   document.getElementById('tkTxt').textContent=text.length>22?text.slice(0,22)+'…':text;
   ticketHolder=null; ticketTile={c:byId.maestro.c,r:byId.maestro.r}; ticketEl.style.opacity='1';
-  const route=routeFn();
+  const route=routes[key]();
   for(let i=0;i<route.length;i++){ await step(route[i], route[i+1]?.agent); }
-  ticketEl.style.opacity='0'; status('🎉 თასქი დასრულდა და ჩაბარდა!'); confetti();
+  ticketEl.style.opacity='0'; status('🎉 დასრულდა და ჩაბარდა!'); chatGate('🎉 დასრულდა და ჩაბარდა!','win'); confetti();
   running=false; setBtns(true);
 }
-function setBtns(on){document.getElementById('runBtn').disabled=!on;document.querySelectorAll('.chip').forEach(b=>b.disabled=!on);}
+function setBtns(on){const i=document.getElementById('taskInput'),b=document.getElementById('sendBtn');if(i)i.disabled=!on;if(b)b.disabled=!on;}
 function confetti(){const em=['🎉','✨','🍷','🎊','⭐','🌿'];for(let i=0;i<28;i++){const s=document.createElement('div');s.className='confetti';s.textContent=pick(em);s.style.left=Math.random()*100+'vw';s.style.animationDuration=(2+Math.random()*2)+'s';s.style.animationDelay=(Math.random()*.6)+'s';document.body.appendChild(s);setTimeout(()=>s.remove(),4200);}}
 
-document.getElementById('runBtn').onclick=()=>{const t=document.getElementById('taskInput').value.trim();run(t||'ზოგადი ფიჩერი',routes.feature);};
-document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('runBtn').click();});
-document.querySelectorAll('.chip').forEach(b=>{b.onclick=()=>{const k=b.dataset.preset;document.getElementById('taskInput').value=PRESET_TXT[k];run(PRESET_TXT[k],routes[k]);};});
+const taskInput=document.getElementById('taskInput'), sendBtn=document.getElementById('sendBtn');
+function send(){const t=taskInput.value.trim();if(!t||running)return;taskInput.value='';run(t);}
+sendBtn.onclick=send;
+taskInput.addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+// kick off office life so it looks busy immediately (not everyone resting)
+AGENTS.forEach((a,i)=>setTimeout(()=>{if(!a.busy)idle(a);},300+i*220));
 // Real-time bridge: open with ?task=...&route=feature|backend|deploy&run=1 (or #demo)
-// so a task given in chat launches the live office and the agents work immediately.
 const params=new URLSearchParams(location.search);
 const qTask=params.get('task'), qRoute=params.get('route');
-if(qTask) document.getElementById('taskInput').value=qTask;
+if(qTask) taskInput.value=qTask;
 if(location.hash==='#demo' || params.get('run')==='1'){
-  const rt=routes[qRoute]||routes.feature;
-  setTimeout(()=>run(qTask||PRESET_TXT[qRoute]||'ზოგადი ფიჩერი', rt), 600);
+  setTimeout(()=>run(qTask||'ახალი ჩატ ფიჩერი', routes[qRoute]?qRoute:null), 700);
 }
 </script>
 </body>
