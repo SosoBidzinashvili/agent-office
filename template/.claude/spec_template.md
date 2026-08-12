@@ -1,4 +1,4 @@
-# BA Spec Template — Chveni Sopeli
+# BA Spec Template
 
 Copy this file to `specs/phaseN_spec.md` and fill every section before implementation begins.
 The orchestrator must present the completed spec to the user and record approval before any dev agent is invoked.
@@ -104,7 +104,7 @@ If no new routes: state "No new routes."
 | Input | Source | Validation required |
 |---|---|---|
 | e.g. `message` body field | user | max 500 chars, strip whitespace, no HTML |
-| e.g. `villager_id` path param | URL | UUID format, exists in DB |
+| e.g. `resource_id` path param | URL | UUID format, exists in DB |
 
 ### 7.2 Threat Model
 
@@ -131,7 +131,7 @@ List every new secret or env var introduced. Confirm each is:
 
 ### 7.5 Dependency Scan
 
-`pip audit` and `npm audit` must be run before the QA gate. Zero new HIGH or CRITICAL findings before the phase gate passes. Document findings and mitigations here.
+The audit tool for every package ecosystem in this project must be run before the QA gate. Zero new HIGH or CRITICAL findings before the phase gate passes. Document findings and mitigations here.
 
 ---
 

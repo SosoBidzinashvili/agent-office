@@ -88,11 +88,23 @@ Agent ids: `nino giorgi tamar lela vakho zaza dato mariam beka irakli maestro`.
 The office visualizes a real, opinionated multi-agent workflow. The reusable pieces:
 
 ```
-template/.claude/
-├── agents/          # 11 specialist subagent definitions (BA, architect, dev, review, QA, audit…)
-└── spec_template.md # canonical spec structure every phase must fill
-docs/agent_workflow.md   # the roster + full pipeline & gate diagram (Mermaid)
+init.sh                       # bootstrap a new project (or --update an existing one)
+template/
+├── CLAUDE.md                 # orchestration rules + gate discipline (project fills the TODOs)
+└── .claude/
+    ├── agents/               # 10 specialist subagent definitions
+    ├── skills/phase-gate/    # /phase-gate N — chains QA + review + audit into one report
+    ├── spec_template.md      # canonical spec structure every phase must fill
+    ├── phases.md             # phase roadmap + human-gate log
+    └── decisions.md          # ADR log — read before any tech choice
+docs/agent_workflow.md        # the roster + full pipeline & gate diagram (Mermaid)
 ```
+
+The agents are **stack-agnostic**. Instead of hardcoding a framework, each one reads
+`CLAUDE.md` for the tech stack, run/test commands, visual language, and project rules —
+so the same roster drives a Python API, a Next.js app, or anything else. Model tiers use
+aliases (`sonnet`, `haiku`) rather than pinned IDs, so the roster doesn't rot when a new
+model ships.
 
 Each agent has a fixed role, a model tier (haiku for tests/docs/DevOps, sonnet for
 spec/design/impl/review/audit), and a place in the pipeline. Gates are mandatory:
@@ -106,14 +118,47 @@ BA spec → 🚦 user approves spec → spike → 🚦 user confirms → [archit
 See **[`docs/agent_workflow.md`](docs/agent_workflow.md)** for the full roster table and
 Mermaid diagrams.
 
-### Reusing it on a new project
+### Starting a new project
 
-1. Copy `template/.claude/` into your new project root.
-2. Adapt the agent definitions (tech stack, conventions, project name) — they currently
-   reference the Chveni Sopeli stack (FastAPI + Next.js) as a worked example.
-3. Keep the gate discipline: spec approval before dev, code-review before commit,
-   tech-audit before every human gate.
-4. Open `index.html` to visualize your team at work.
+```bash
+git clone https://github.com/SosoBidzinashvili/agent-office.git
+cd agent-office
+./init.sh ~/code/my-new-project "My New Project"
+```
+
+Then open the project and fill in the TODOs:
+
+```bash
+cd ~/code/my-new-project
+claude
+# 1. CLAUDE.md — concept, tech stack, run/test commands, visual language
+# 2. .claude/phases.md — the phase roadmap
+# 3. "Use the ba-agent to write the spec for Phase 1"
+```
+
+### Improving the scheme, and propagating the improvement
+
+`init.sh` splits the files into two classes:
+
+| Class | Files | Owner |
+|---|---|---|
+| **Shared** | `.claude/agents/`, `.claude/skills/`, `.claude/spec_template.md` | this repo |
+| **Project** | `CLAUDE.md`, `.claude/phases.md`, `.claude/decisions.md` | the project |
+
+So when you improve an agent while working on a real project, commit it back here, then
+pull it into every other project:
+
+```bash
+./init.sh --update ~/code/some-other-project
+```
+
+`--update` overwrites the shared files and never touches the project-owned ones. Re-running
+plain `init.sh` on an existing project refuses rather than clobbering it.
+
+Keep the gate discipline in every project: spec approval before dev, code-review before
+commit, tech-audit before every human gate. And when you add, remove, retool, or re-tier an
+agent, update `docs/agent_workflow.md` in the same change — the roster table and the Mermaid
+diagrams are the canonical picture.
 
 ---
 
