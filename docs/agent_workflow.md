@@ -1,4 +1,4 @@
-# Chveni Sopeli — Agent Roster & Workflow
+# Agent Roster & Workflow
 
 > **⚠️ KEEP IN SYNC.** This document is the canonical picture of our agents and how
 > a task flows through them. **Whenever the process changes** — an agent is added,
@@ -10,15 +10,16 @@
 > `.claude/phases.md` (pipeline & gates). If they disagree with this file, they win —
 > and this file is stale and must be fixed.
 >
-> Last synced: **2026-08-05** (Phase 9).
+> Last synced: **2026-08-12** (template v2 — generalized for any project).
 
 ---
 
 ## 1. Agent Roster
 
-Eleven specialist agents plus the orchestrator (the main loop — me). Model tiering
-is mandatory (see `.claude/decisions.md` ADR-004): `haiku` for tests/docs/DevOps,
-`sonnet` for spec/design/implementation/review/audit.
+Ten specialist agents plus the orchestrator (the main loop). Model tiering is mandatory:
+`haiku` for tests/docs/DevOps, `sonnet` for spec/design/implementation/review/audit.
+Agent frontmatter uses model **aliases** (`sonnet`, `haiku`, `opus`, `inherit`) rather than
+pinned model IDs, so the roster does not rot when a new model ships.
 
 | Agent | Model | Tools (skills) | Invoked when | Produces |
 |---|---|---|---|---|
@@ -26,13 +27,13 @@ is mandatory (see `.claude/decisions.md` ADR-004): `haiku` for tests/docs/DevOps
 | **ba-agent** | sonnet | Read, Glob, Grep, Bash | start of a phase, before any build | `specs/phaseN_spec.md` (stories + data model + API contract + ACs + Security) |
 | **architect-agent** | sonnet | Read, Write, Edit, Glob, Grep | infra / new-service phases, after spec approved | `specs/phaseN_design.md` + new ADRs in `decisions.md` |
 | **design-agent** | sonnet | Read, Write, Edit, Glob | UI phases, after spec approved | wireframes/component inventory in `specs/phaseN_design.md` |
-| **backend-dev** | sonnet | Read, Write, Edit, Bash, Glob, Grep | after design doc, for Python/FastAPI work | routes, agents, models, migrations, scripts + tests |
-| **frontend-dev** | sonnet | Read, Write, Edit, Bash, Glob, Grep | after design doc, for Next.js/React work | pages, map, chat UI, components |
-| **devops-agent** | haiku | Read, Write, Edit, Bash, Glob | Docker / CI / deploy / env config (e.g. Phase 9) | docker-compose, Dockerfiles, railway.toml/vercel.json, env docs |
+| **backend-dev** | sonnet | Read, Write, Edit, Bash, Glob, Grep | after design doc, for server-side work | routes, models, migrations, jobs, scripts + tests |
+| **frontend-dev** | sonnet | Read, Write, Edit, Bash, Glob, Grep | after design doc, for client-side work | pages, components, forms, data fetching |
+| **devops-agent** | haiku | Read, Write, Edit, Bash, Glob | containers / CI / deploy / env config | compose files, Dockerfiles, hosting config, env docs |
 | **code-reviewer** | sonnet | Read, Glob, Grep, Bash | after any implementation, **before every commit** | `PASS / FAIL / PASS WITH NOTES` verdict with findings |
-| **qa-agent** | haiku | Read, Write, Edit, Bash, Glob, Grep | after impl, before human gate | tests + per-AC PASS/FAIL (incl. phase N-1 regression) |
+| **qa-agent** | haiku | Read, Write, Edit, Bash, Glob, Grep | after impl, before human gate | tests + per-AC PASS/FAIL (incl. phase N-1 regression + dep audit) |
 | **phase-verifier** | sonnet | Bash, Read | to verify a phase E2E without user touching terminal | per-AC PASS/FAIL with live evidence |
-| **tech-auditor** | sonnet | Bash, Read, Glob, Grep | **mandatory** before every human gate (auto) | live DB/API/LLM audit → `HEALTHY / DEGRADED / BLOCKED` + GO/NO-GO |
+| **tech-auditor** | sonnet | Bash, Read, Glob, Grep | **mandatory** before every human gate (auto) | live data/API/deps audit → `HEALTHY / DEGRADED / BLOCKED` + GO/NO-GO |
 
 **Orchestration skill:** the `phase-gate` skill chains `qa-agent` + `code-reviewer` +
 curl checks into one gate report for a given phase.
@@ -93,10 +94,10 @@ flowchart TD
     BUILD --> MID["Mid-phase light audit<br/>tech-auditor · lightweight<br/>after first working deliverable"]
     MID --> CR{{"code-reviewer<br/>tiered depth:<br/>config=light · routes=deep · auth=max+security"}}
     CR -->|FAIL / CRITICAL| BUILD
-    CR -->|PASS| DEP["Dep scan<br/>pip-audit + npm audit<br/>zero new HIGH / CRITICAL"]
+    CR -->|PASS| DEP["Dep scan<br/>per-ecosystem audit tool<br/>zero new HIGH / CRITICAL"]
     DEP --> QA["qa-agent<br/>phase-N ACs + phase-(N-1) regression"]
     QA --> PV["phase-verifier<br/>E2E, no user terminal"]
-    PV --> TA{{"tech-auditor — MANDATORY<br/>live DB / API / LLM / perf<br/>HEALTHY · DEGRADED · BLOCKED"}}
+    PV --> TA{{"tech-auditor — MANDATORY<br/>live data / API / deps / perf<br/>HEALTHY · DEGRADED · BLOCKED"}}
     TA -->|BLOCKED| BUILD
     TA -->|HEALTHY / DEGRADED accepted| G3{{"🚦 GATE 3 — HUMAN GATE<br/>recorded in phases.md"}}
     G3 --> DONE([Phase approved → next phase])
@@ -106,7 +107,7 @@ flowchart TD
 - **Gate 1 (spec):** BA spec must be user-approved *before any dev agent is invoked*.
 - **Gate 2 (spike):** riskiest assumption validated with a thin slice; user confirms.
 - **Commit gate:** `code-reviewer` must return PASS before *any* commit — no exceptions.
-- **Dep gate (Phase 9+):** `pip-audit` + `npm audit` show zero new HIGH/CRITICAL.
+- **Dep gate:** the audit tool for every package ecosystem shows zero new HIGH/CRITICAL.
 - **Gate 3 (human):** `tech-auditor` MUST have run and its verdict shown before the
   human gate is presented. `BLOCKED` must be fixed first; `DEGRADED` is acceptable only
   if all HIGH findings are acknowledged. No phase advances until the gate is recorded
@@ -122,4 +123,4 @@ flowchart TD
 | New utility functions | standard (correctness + conventions) |
 | New API routes | deep (correctness + security + error handling) |
 | LLM agents / prompts | deep + manual eval of a sample output |
-| Auth / secrets / payments | maximum + mandatory security-agent pass first |
+| Auth / secrets / payments | maximum + mandatory security pass first |
